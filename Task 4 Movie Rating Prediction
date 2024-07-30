@@ -1,0 +1,36 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+csv_file_path = r"C:\Users\Hp\Downloads\archive (3).zip"
+movies_df = pd.read_csv(csv_file_path, encoding='latin1')
+print("First few rows of the dataset:")
+print(movies_df.head())
+missing_values = movies_df.isnull().sum()
+print("\nMissing values in each column:")
+print(missing_values)
+basic_stats = movies_df.describe(include='all')
+print("\nBasic statistics of the data:")
+print(basic_stats)
+movies_df = movies_df.dropna(subset=['Rating'])
+movies_df['Votes'] = pd.to_numeric(movies_df['Votes'], errors='coerce')
+movies_df['Votes'] = movies_df['Votes'].fillna(movies_df['Votes'].median())
+movies_df['Year'] = pd.to_numeric(movies_df['Year'].str.extract('(\d{4})')[0], errors='coerce')
+movies_df['Duration'] = pd.to_numeric(movies_df['Duration'].str.replace(' min', ''), errors='coerce')
+movies_df = pd.concat([movies_df, movies_df['Genre'].str.get_dummies(sep=',')], axis=1)
+movies_df = movies_df.drop('Genre', axis=1)
+movies_df = movies_df.drop('Name', axis=1)
+movies_df = pd.get_dummies(movies_df, columns=['Director', 'Actor 1', 'Actor 2', 'Actor 3'], drop_first=True)
+X = movies_df.drop('Rating', axis=1)
+y = movies_df['Rating']
+X = X.apply(pd.to_numeric, errors='coerce')
+X = X.dropna(axis=1, how='any')
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f'\nMean Squared Error: {mse}')
+print(f'R^2 Score: {r2}')
+
