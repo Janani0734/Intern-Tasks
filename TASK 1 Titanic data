@@ -1,0 +1,31 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import StandardScaler
+file_path = r'C:\Users\Hp\Downloads\Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+titanic_data['Age'].fillna(titanic_data['Age'].median(), inplace=True)
+titanic_data.drop(columns=['Cabin'], inplace=True)
+titanic_data['Embarked'].fillna(titanic_data['Embarked'].mode()[0], inplace=True)
+titanic_data = pd.get_dummies(titanic_data, columns=['Sex', 'Embarked'], drop_first=True)
+titanic_data.drop(columns=['PassengerId', 'Name', 'Ticket'], inplace=True)
+X = titanic_data.drop(columns=['Survived'])
+y = titanic_data['Survived']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+model = LogisticRegression(max_iter=500)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+print(f'Accuracy: {accuracy}')
+print('Confusion Matrix:')
+print(conf_matrix)
+print('Classification Report')
+print(class_report)
+
+
